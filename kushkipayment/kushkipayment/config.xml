@@ -2,7 +2,7 @@
 <module>
 	<name>kushkipayment</name>
 	<displayName><![CDATA[Kushki]]></displayName>
-	<version><![CDATA[1.0.0]]></version>
+	<version><![CDATA[1.0.1]]></version>
 	<description><![CDATA[Kushki Debit and Credit Card Gateway.]]></description>
 	<author><![CDATA[Kushki]]></author>
 	<tab><![CDATA[payments_gateways]]></tab>
