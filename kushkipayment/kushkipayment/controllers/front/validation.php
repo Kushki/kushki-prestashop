@@ -65,8 +65,8 @@ class KushkiPaymentValidationModuleFrontController extends ModuleFrontController
 		$token        = Tools::getValue( 'kushkiToken' );
 		$months       = Tools::getValue( 'kushkiDeferred' );
 		$total        = (float) $cart->getOrderTotal( true, Cart::BOTH );
-		$subtotalIva  = $total / 1.14;
-		$iva          = $total - ( $total / 1.14 );
+		$subtotalIva  = $total / 1.12;
+		$iva          = $total - $subtotalIva;
 		$subtotalIva0 = 0;
 		$ice          = 0;
 		$amount       = new kushki\lib\Amount( $subtotalIva, $iva, $subtotalIva0, $ice );
