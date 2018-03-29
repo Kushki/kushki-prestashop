@@ -216,12 +216,6 @@ class KushkiPayment extends PaymentModule {
 	
     public function hookPaymentOptions($params)
     {
-        return $this->KushkiPaymentOptions($params);
-    }	
-
-    public function KushkiPaymentOptions($params)
-    {
-
         if (!$this->active) {
             return;
         }
@@ -249,7 +243,6 @@ class KushkiPayment extends PaymentModule {
 
     public function KushkiExternalPaymentOption()
     {
-        $lang = Tools::strtolower($this->context->language->iso_code);
 		if (isset($_GET['kushkierror'])) $errmsg = $_GET['kushkierror'];
 		
 		$this->context->smarty->assign( array(
