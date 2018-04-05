@@ -40,8 +40,6 @@ class KushkiPaymentPaymentModuleFrontController extends ModuleFrontController
 		parent::initContent();
 
 		$cart = $this->context->cart;
-//		if (!$this->module->checkCurrency($cart))
-//			Tools::redirect('index.php?controller=order');
 		$current_currency   = new Currency((int)($cart->id_currency));
 		Context::getContext()->smarty->assign(array(
 			'nbProducts' => $cart->nbProducts(),

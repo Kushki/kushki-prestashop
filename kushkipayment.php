@@ -224,27 +224,13 @@ class KushkiPayment extends PaymentModule {
             $this->KushkiExternalPaymentOption(),
         ];
         return $payment_options;
-    }
+    }	
 
-    public function checkCurrency($cart)
-    {
-        $currency_order = new Currency($cart->id_currency);
-        $currencies_module = $this->getCurrency($cart->id_currency);
-
-        if (is_array($currencies_module)) {
-            foreach ($currencies_module as $currency_module) {
-                if ($currency_order->id == $currency_module['id_currency']) {
-                    return true;
-                }
-            }
-        }
-        return false;
-    }
+   
+	
 
     public function KushkiExternalPaymentOption()
-    {
-		if (isset($_GET['kushkierror'])) $errmsg = $_GET['kushkierror'];
-		
+    {		
 		$this->context->smarty->assign( array(
 			'this_path'     => $this->_path,
 			'this_path_bw'  => $this->_path,
