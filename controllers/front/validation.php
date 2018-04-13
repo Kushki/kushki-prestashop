@@ -56,40 +56,34 @@ class KushkiPaymentValidationModuleFrontController extends ModuleFrontController
 		if ( ! Validate::isLoadedObject( $customer ) ) {
 			Tools::redirect( 'index.php?controller=order&step=1' );
 		}
-
-
 		$merchantId   = Configuration::get( 'KUSHKI_PRIVATE_KEY' );
 		
 		$language     = kushki\lib\KushkiLanguage::ES;
 		$current_currency   = new Currency((int)($cart->id_currency));
 		$currency1 = $current_currency->iso_code;
 		if ($currency1 == 'USD') 	$currencyCode     = kushki\lib\KushkiCurrency::USD;
-		if ($currency1 == 'COP') 	$currencyCode     = kushki\lib\KushkiCurrency::COP;;		
+		if ($currency1 == 'COP') 	$currencyCode     = kushki\lib\KushkiCurrency::COP;		
 
 
-
-		
 		$environment  = ( Configuration::get( 'KUSHKI_TEST' ) ) ? kushki\lib\KushkiEnvironment::TESTING : kushki\lib\KushkiEnvironment::PRODUCTION;
 		
 		$kushki       = new kushki\lib\Kushki( $merchantId, $language, $currencyCode, $environment );
 		
 		$token        = Tools::getValue( 'kushkiToken' );
 		$months       = (int)Tools::getValue( 'kushkiDeferred' );
-
-
+		
 		$total        = (float) $cart->getOrderTotal( true, Cart::BOTH );
 		$tx_ref       = Tools::getValue('tx_ref');
+		$val_ice      = Configuration::get('PS_TAX');
 		$subtotalIva  = $total / $tx_ref;
 		$iva          = $total - $subtotalIva;
-		$subtotalIva0 = 0;
-		$ice          = 0;
-		$amount       = new kushki\lib\Amount( $subtotalIva, $iva, $subtotalIva0, $ice );
-
-
+		$subtotalIva0 = $total * $productQuantity;
+		$ice          = $val_ice;
+		$amount       = new kushki\lib\Amount( $subtotalIva, $iva, $subtotalIva0, $ice);
 		
 		if ( $months > 0 ) {
 
-			$transaction = $kushki->deferredCharge( $token, $amount, $months);
+			$transaction = $kushki->deferredCharge( $token, $amount, $months, $cart);
 		} else {
 			$transaction = $kushki->charge( $token, $amount, $cart);
 		}
@@ -97,12 +91,9 @@ class KushkiPaymentValidationModuleFrontController extends ModuleFrontController
 			Tools::redirect('index.php?controller=order&step=4&KushkiPaymenterror='.urlencode($transaction->getResponseText()));			
 			exit;
 		}
-
 		$extra    = array(
 			'transaction_id' => $transaction->getTicketNumber()
-
 		);
-
 		$this->module->validateOrder( $cart->id, Configuration::get( 'PS_OS_PAYMENT' ), $total, $this->module->displayName, NULL, $extra, (int) $cart->id_currency, false, $customer->secure_key );
 		Tools::redirect( 'index.php?controller=order-confirmation&id_cart=' . $cart->id . '&id_module=' . $this->module->id . '&id_order=' . $this->module->currentOrder . '&key=' . $customer->secure_key );
 	}
