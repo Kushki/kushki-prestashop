@@ -64,22 +64,38 @@ class KushkiPaymentValidationModuleFrontController extends ModuleFrontController
 		if ($currency1 == 'USD') 	$currencyCode     = kushki\lib\KushkiCurrency::USD;
 		if ($currency1 == 'COP') 	$currencyCode     = kushki\lib\KushkiCurrency::COP;		
 
+            //Get total value of products without VAT
+            $tx_ref       = Tools::getValue('tx_ref');
+            $vat_0 = (int)configuration::get('ID_price_tax');
+            $tot;
+            $tot_0 = 0;
+            for ($vat_0 != $tx_ref; ; $tot++) {
+                $tot_0 = $tot_0 + $tot;
+                break;
+            }
+
 
 		$environment  = ( Configuration::get( 'KUSHKI_TEST' ) ) ? kushki\lib\KushkiEnvironment::TESTING : kushki\lib\KushkiEnvironment::PRODUCTION;
-		
 		$kushki       = new kushki\lib\Kushki( $merchantId, $language, $currencyCode, $environment );
-		
 		$token        = Tools::getValue( 'kushkiToken' );
 		$months       = (int)Tools::getValue( 'kushkiDeferred' );
 		
 		$total        = (float) $cart->getOrderTotal( true, Cart::BOTH );
 		$tx_ref       = Tools::getValue('tx_ref');
 		$val_ice      = Configuration::get('PS_TAX');
+		
 		$subtotalIva  = $total / $tx_ref;
 		$iva          = $total - $subtotalIva;
-		$subtotalIva0 = $total * $productQuantity;
-		$ice          = $val_ice;
-		$amount       = new kushki\lib\Amount( $subtotalIva, $iva, $subtotalIva0, $ice);
+		$subtotalIva0 = $tot_0 * $productQuantity;
+		$ice          = (int)configuration::get('tax_ice') * $val_ice;
+		
+		//Call for extrataxes prestashop 1.7
+		$propina=Tools::getValue('tx_ref_tip');
+		$tasaAeroportuaria=Tools::getValue('tx_ref_airport_fee');;
+		$agenciaDeViaje=Tools::getValue('tx_ref_travel_agency');
+		$iac=Tools::getValue('tx_ref_tip_COP_iac');
+		$extraTaxes = $propina . $tasaAeroportuaria . $agenciaDeViaje . $iac;
+		$amount       = new kushki\lib\Amount( $subtotalIva, $iva, $subtotalIva0, $ice, $extrataxes );
 		
 		if ( $months > 0 ) {
 
@@ -91,9 +107,12 @@ class KushkiPaymentValidationModuleFrontController extends ModuleFrontController
 			Tools::redirect('index.php?controller=order&step=4&KushkiPaymenterror='.urlencode($transaction->getResponseText()));			
 			exit;
 		}
+
 		$extra    = array(
 			'transaction_id' => $transaction->getTicketNumber()
+
 		);
+
 		$this->module->validateOrder( $cart->id, Configuration::get( 'PS_OS_PAYMENT' ), $total, $this->module->displayName, NULL, $extra, (int) $cart->id_currency, false, $customer->secure_key );
 		Tools::redirect( 'index.php?controller=order-confirmation&id_cart=' . $cart->id . '&id_module=' . $this->module->id . '&id_order=' . $this->module->currentOrder . '&key=' . $customer->secure_key );
 	}
