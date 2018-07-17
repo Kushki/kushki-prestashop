@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<module>
+    <name>kushkipagos</name>
+    <displayName><![CDATA[kushkipagos]]></displayName>
+    <version><![CDATA[0.0.6]]></version>
+    <description><![CDATA[M&oacute;dulo de pago por kushki]]></description>
+    <author><![CDATA[Orizzonte S.A]]></author>
+    <tab><![CDATA[payments_gateways]]></tab>
+	<confirmUninstall><![CDATA[Está seguro que desea desinstalar el modulo de pagos de kushki?]]></confirmUninstall>
+    <is_configurable>1</is_configurable>
+    <need_instance>0</need_instance>
+	<limited_countries></limited_countries>
+</module>
