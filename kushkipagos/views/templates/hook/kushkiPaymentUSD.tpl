@@ -38,8 +38,12 @@
         <input type="hidden" name="total_wout" value="{$total_wout}">
         <input type="hidden" name="currency" value="{$currency_order->iso_code}">
         <input type="hidden" name="language" value="{$language.iso_code}">
+        <input type="hidden" name="shipping_order" value="{$shipping_order}">
         <input type="hidden" name="currency_det" value="DOLAR">
     </form>
+
+
+    
     
 </section>
 
@@ -47,8 +51,8 @@
     var kushki = new KushkiCheckout({
         form: "kushki-pay-form",
         merchant_id: "{$public_key}",
-        amount: {$total_wt}, // total amount
+        is_subscription: false,
+        amount: "{$total_wt}",
         currency: "{$currency_order->iso_code}", // Currency code, by default "USD"
-        is_subscription: false // True if it is a subscription (recurring payment); False, otherwise.
     });
 </script>

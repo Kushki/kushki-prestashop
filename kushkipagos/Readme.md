@@ -19,6 +19,7 @@ Se debe configurar los siguientes parametros antes de utilizar el módulo:
 * **Public key** y **Private key** .
 * **Entorno de prueba**: Definimos si nuestro módulo esta en fase de pruebas o en producción.
 * **Permitir transferencia**: Válido solo para colombia, definimos si vamos a permitir pagos con **PSE**
+* **Razon Social**: Válido solo para colombia, definimos la razón social para transferencias con **PSE**
 
 
 

@@ -32,19 +32,34 @@
         <input type="hidden" name="total_wout" value="{$total_wout}">
         <input type="hidden" name="currency" value="{$currency_order->iso_code}">
         <input type="hidden" name="language" value="{$language.iso_code}">
+        <input type="hidden" name="shipping_order" value="{$shipping_order}">
         <input type="hidden" name="currency_det" value="PESO">
     </form>
+    
 </section>
 
 <script type="text/javascript">
     var kushki = new KushkiCheckout({
         form: "kushki-pay-form",
         merchant_id: "{$public_key}",
-        amount: "{$total_wt}",
         is_subscription: false,
         {if isset($transfer_COP) and $transfer_COP==true }
-        payment_methods:["transfer","credit-card"] ,// optional default credit-card
+        amount: {
+            subtotalIva: {$total_wout },
+            subtotalIva0: 0,
+            iva: {$total_wt - $total_wout }
+            },
+            callback_url: '{$pse_url}',
+            payment_methods:["transfer","credit-card"] ,// optional default credit-card
+        {else}
+        amount: "{$total_wt}",
         {/if}
         currency: "{$currency_order->iso_code}", // Currency code, by default "USD"
+    });
+</script>
+<script type="text/javascript">
+
+    $( "#pse" ).click(function() {
+        alert( "Handler for .click() called." );
     });
 </script>
