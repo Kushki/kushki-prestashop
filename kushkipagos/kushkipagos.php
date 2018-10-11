@@ -121,7 +121,6 @@ class Kushkipagos extends PaymentModule
 
         return true;
 
-
     }
 
 
@@ -174,7 +173,6 @@ class Kushkipagos extends PaymentModule
 
         $this->context->smarty->assign('module_dir', $this->_path);
         $this->context->smarty->assign('web_url', $this->context->link->getModuleLink($this->name, 'status', array(), true));
-
         $output = $this->context->smarty->fetch($this->local_path.'views/templates/admin/configure.tpl');
 
         return $output.$this->renderForm();
