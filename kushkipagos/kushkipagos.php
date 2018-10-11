@@ -42,7 +42,7 @@ class Kushkipagos extends PaymentModule
     {
         $this->name = 'kushkipagos';
         $this->tab = 'payments_gateways';
-        $this->version = '1.0.0';
+        $this->version = '1.1.2';
         $this->author = 'Orizzonte S.A';
         $this->need_instance = 0;
         $this->display = 'view';
@@ -66,11 +66,10 @@ class Kushkipagos extends PaymentModule
         $this->displayName = $this->l('kushkipagos');
         $this->description = $this->l('Módulo de pago por kushki');
         $this->confirmUninstall = $this->l('Está seguro que desea desinstalar el modulo de pagos de kushki?');
-
         $this->ps_versions_compliancy = array('min' => '1.6', 'max' => _PS_VERSION_);
 
         if ((!isset($this->key_public) || !isset($this->key_private) || empty($this->key_public) || empty($this->key_private))) {
-            $this->warning = $this->l ( 'La llave pública y la llave privada deben ser configuradas antes de utilizar el módulo.' );
+            $this->warning = 'La llave pública y la llave privada deben ser configuradas antes de utilizar el módulo.' ;
             $this->status_module=false;
         }
         // Si no existen tipos de moneda en su tienda, aparecerá el texto de Warning en el listado de módulos.
@@ -104,10 +103,44 @@ class Kushkipagos extends PaymentModule
         Configuration::updateValue('KUSHKIPAGOS_DEV', true);
 
         PrestaShopLogger::addLog('Instalación de módulo de pagos Kushki', 2);
-        return parent::install()
+        if( parent::install()
             && $this->registerHook('payment')
             && $this->registerHook('paymentOptions')
-            && $this->registerHook('paymentReturn');
+            && $this->registerHook('paymentReturn')){
+                return true;
+            }else{
+            $this->_errors[] = $this->l('No se pudo registrar los hooks payment');
+                return false;
+            }
+
+ // install DataBase
+        if (!$this->installSQL()) {
+            $this->_errors[] = $this->l('No se pudo ejecutar el sql');
+            return false;
+        }
+
+        return true;
+
+    }
+
+
+     private function installSQL()
+    {
+        return  Db::getInstance()->execute(
+                'CREATE TABLE IF NOT EXISTS '._DB_PREFIX_.'kushkipagos (
+            `id_kushki_order` INTEGER(11) NOT NULL PRIMARY KEY AUTO_INCREMENT ,
+            `token` varchar(100) DEFAULT NULL,
+            `order_id` INTEGER(11) DEFAULT NULL,
+            `cart_id` INTEGER(11) DEFAULT NULL,
+            `payment_status` VARCHAR(60) DEFAULT NULL,
+            `total` FLOAT(11) DEFAULT NULL,
+            `module_name` VARCHAR (40)  ,
+            `message` VARCHAR (100) ,
+            `currency_id` INTEGER (11),
+            `customer_secure_key` VARCHAR (60),
+             `status` VARCHAR (100),
+            `updated_at` DATETIME DEFAULT NULL)
+            ENGINE = '._MYSQL_ENGINE_. ' ');
     }
 
     public function uninstall()
@@ -117,12 +150,14 @@ class Kushkipagos extends PaymentModule
         Configuration::deleteByName('KUSHKIPAGOS_PRIVATE_KEY');
         Configuration::deleteByName('KUSHKIPAGOS_TRANSFER');
         Configuration::deleteByName('KUSHKIPAGOS_DEV');
+        Configuration::deleteByName('KUSHKIPAGOS_RAZON_SOCIAL');
 
 
         PrestaShopLogger::addLog('Desinstalación de módulo de pagos Kushki', 2);
 
         return parent::uninstall();
     }
+
 
     /**
      * Load the configuration form
@@ -137,7 +172,7 @@ class Kushkipagos extends PaymentModule
         }
 
         $this->context->smarty->assign('module_dir', $this->_path);
-
+        $this->context->smarty->assign('web_url', $this->context->link->getModuleLink($this->name, 'status', array(), true));
         $output = $this->context->smarty->fetch($this->local_path.'views/templates/admin/configure.tpl');
 
         return $output.$this->renderForm();
@@ -264,6 +299,14 @@ class Kushkipagos extends PaymentModule
                         'label' => $this->l('Private key'),
                     ),
                     array(
+                        'col' => 3,
+                        'type' => 'text',
+                        'prefix' => '<i class="icon icon-address-card"></i>',
+                        'desc' => $this->l('Ingrese la razón social'),
+                        'name' => 'KUSHKIPAGOS_RAZON_SOCIAL',
+                        'label' => $this->l('Razon Social'),
+                    ),
+                    array(
                         'type' => 'switch',
                         'label' => $this->l('Permitir transferencia'),
                         'name' => 'KUSHKIPAGOS_TRANSFER',
@@ -300,12 +343,15 @@ class Kushkipagos extends PaymentModule
                                 'label' => $this->l('Disabled')
                             )
                         ),
-                    )
+                    ),
                 ),
+
                 'submit' => array(
                     'title' => $this->l('Save'),
                 ),
+
             ),
+            
         );
     }
 
@@ -318,6 +364,7 @@ class Kushkipagos extends PaymentModule
             'KUSHKIPAGOS_LIVE_MODE' => Configuration::get('KUSHKIPAGOS_LIVE_MODE', true),
             'KUSHKIPAGOS_PUBLIC_KEY' => Configuration::get('KUSHKIPAGOS_PUBLIC_KEY', null),
             'KUSHKIPAGOS_PRIVATE_KEY' => Configuration::get('KUSHKIPAGOS_PRIVATE_KEY', null),
+            'KUSHKIPAGOS_RAZON_SOCIAL' => Configuration::get('KUSHKIPAGOS_RAZON_SOCIAL', null),
             'KUSHKIPAGOS_TRANSFER' => Configuration::get('KUSHKIPAGOS_TRANSFER', false),
             'KUSHKIPAGOS_DEV' => Configuration::get('KUSHKIPAGOS_DEV', true)
         );
@@ -330,9 +377,10 @@ class Kushkipagos extends PaymentModule
     {
 
         $logger = new FileLogger(); //0 == nivel de debug. Sin esto logDebug() no funciona.
-        $logger->setFilename(_PS_ROOT_DIR_."/kushkiLogs/".date('d-m-Y').".log");
+        $logger->setFilename(_PS_ROOT_DIR_."/kushkiLogs/".date('Y-m-d').".log");
         $logger->logWarning('Config has been changed');
         PrestaShopLogger::addLog('Actualización de parametros de configuración en módulo kushkipagos', 2);
+
 
         $form_values = $this->getConfigFormValues();
 
@@ -353,25 +401,108 @@ class Kushkipagos extends PaymentModule
         $order = $params['order'];
 
         $logger = new FileLogger(); //0 == nivel de debug. Sin esto logDebug() no funciona.
-        $logger->setFilename(_PS_ROOT_DIR_."/kushkiLogs/".date('d-m-Y').".log");
+        $logger->setFilename(_PS_ROOT_DIR_."/kushkiLogs/".date('Y-m-d').".log");
+        
         if ($order->getCurrentOrderState()->id != Configuration::get('PS_OS_ERROR')){
             $this->smarty->assign('status', 'ok');
 
+            // asignación sesiones normal
             $cookie = new Cookie('cookie_kushkiToken');
             $cookie_flag = new Cookie('cookie_flag');
-            if(isset($cookie->variable_name) ) {
-                $this->smarty->assign('ticketNumber', $cookie->variable_name);
+
+            // asignación sesiones pse
+            $cookie_pse_flag = new Cookie('pse_flag');
+
+
+            if(isset($cookie_pse_flag->variable_name) and (int)$cookie_pse_flag->variable_name===1){
+
+                // asignación sesiones pse
+                $cookie_pse_kushkiToken_ = new Cookie('pse_kushkiToken');
+                $cookie_pse_ticketNumber = new Cookie('pse_ticketNumber');
+                $cookie_pse_status = new Cookie('pse_status');
+                $cookie_pse_statusDetail = new Cookie('pse_statusDetail');
+                $cookie_pse_trazabilityCode = new Cookie('pse_trazabilityCode');
+                $_body_main = new Cookie('_body_main');
+                $_bankName = new Cookie('_bankName');
+                if(isset($cookie_flag->variable_name) and (int)$cookie_flag->variable_name===1) {
+
+                    $logger->logInfo(" * Payment status: ".$cookie_pse_status->variable_name.", ticket number: " . $cookie_pse_ticketNumber->variable_name . " whit reference: " . $order->reference . " - orden id: " . $order->id);
+                    PrestaShopLogger::addLog('Kushki pago status: '.$cookie_pse_status->variable_name.' en orden ' . $order->id . ' con referencia ' . $order->reference . ' y numero de ticket: ' . $cookie_pse_ticketNumber->variable_name, 1);
+                    $cookie_flag->variable_name = 0;
+                    $cookie_flag->write();
+                }
+
+
+                // mandamos variables a la plantilla
+                $_body_main_array=unserialize( $_body_main->variable_name);
+
+
+                //razon social
+                $varpse_razon_social =Configuration::get('KUSHKIPAGOS_RAZON_SOCIAL');
+                if (!$varpse_razon_social) {
+                    $varpse_razon_social = 'Sin razon social';
+                }
+                $this->smarty->assign('varpse_razon_social', $varpse_razon_social);
+
+                //estado
+                if ($cookie_pse_status->variable_name == 'approvedTransaction') {
+                    $varpse_status = 'Aprovada';
+                } elseif ($cookie_pse_status->variable_name == 'initializedTransaction') {
+                    $varpse_status = 'Pendiente';
+                } elseif ($cookie_pse_status->variable_name == 'declinedTransaction') {
+                    $varpse_status = 'Denegada';
+                } else {
+                    $varpse_status = 'Denegada';
+                }
+                $this->smarty->assign('varpse_status', $varpse_status);
+
+                //documentNumbre
+                $varpse_documentNumber=$_body_main_array->documentNumber;
+                $this->smarty->assign('varpse_documentNumber', $varpse_documentNumber);
+
+                //bank name
+                $varpse_bankName=$_bankName->variable_name;
+                $this->smarty->assign('varpse_bankName', $varpse_bankName);
+
+                //paymentDescription
+                $varpse_paymentDescription=$_body_main_array->paymentDescription;
+                $this->smarty->assign('varpse_paymentDescription', $varpse_paymentDescription);
+
+                //fecha
+                $varpse_created= date('Y/m/d', $_body_main_array->created/1000);
+                $this->smarty->assign('varpse_created', $varpse_created);
+
+
+                if(isset($cookie_pse_flag->variable_name) ) {
+                    $this->smarty->assign('is_pse', $cookie_pse_flag->variable_name);
+                }
+                if(isset($cookie_pse_status->variable_name) ) {
+                    $this->smarty->assign('cookie_pse_status', $cookie_pse_status->variable_name);
+                }
+                if(isset($cookie_pse_ticketNumber->variable_name) ) {
+                    $this->smarty->assign('ticketNumber', $cookie_pse_ticketNumber->variable_name);
+                }
+                if(isset($cookie_pse_statusDetail->variable_name) ) {
+                    $this->smarty->assign('pse_statusDetail', $cookie_pse_statusDetail->variable_name);
+                }
+                if(isset($cookie_pse_trazabilityCode->variable_name) ) {
+                    $this->smarty->assign('pse_trazabilityCode', $cookie_pse_trazabilityCode->variable_name);
+                }
+
+            }else {
+
+                if(isset($cookie->variable_name) ) {
+                    $this->smarty->assign('ticketNumber', $cookie->variable_name);
+                }
+
+                if (isset($cookie_flag->variable_name) and (int)$cookie_flag->variable_name === 1) {
+
+                    $logger->logInfo(" * Payment DONE, ticket number: " . $cookie->variable_name . " whit reference: " . $order->reference . " - orden id: " . $order->id);
+                    PrestaShopLogger::addLog('Kushki pago CORRECTO en orden ' . $order->id . ' con referencia ' . $order->reference . ' y numero de ticket: ' . $cookie->variable_name, 1);
+                    $cookie_flag->variable_name = 0;
+                    $cookie_flag->write();
+                }
             }
-
-
-            if(isset($cookie_flag->variable_name) and (int)$cookie_flag->variable_name===1) {
-
-                $logger->logInfo(" * Payment DONE, ticket number: " . $cookie->variable_name . " whit reference: " . $order->reference . " - orden id: " . $order->id);
-                PrestaShopLogger::addLog('Kushki pago CORRECTO en orden ' . $order->id . ' con referencia ' . $order->reference . ' y numero de ticket: ' . $cookie->variable_name, 1);
-                $cookie_flag->variable_name = 0;
-                $cookie_flag->write();
-            }
-
 
         }else{
             $logger->logError(" * FAIL whit reference: ".$order->reference." - orden id: ".$order->id." - amount: ".Tools::displayPrice(
@@ -380,7 +511,6 @@ class Kushkipagos extends PaymentModule
                     false
                 ) );
             PrestaShopLogger::addLog('Kushki pago FALLIDO en orden '.$order->id.' con referencia '.$order->reference, 3);
-
 
         }
 
@@ -398,7 +528,6 @@ class Kushkipagos extends PaymentModule
         ));
 
         return $this->fetch('module:kushkipagos/views/templates/hook/confirmation.tpl');
-
     }
 
 
@@ -440,6 +569,7 @@ class Kushkipagos extends PaymentModule
             ->setAction($this->context->link->getModuleLink($this->name, 'validation', array(), true))
             ->setAdditionalInformation($setAdditionalInformation);
         return [$newOption];
+        
     }
 
 
@@ -470,12 +600,13 @@ class Kushkipagos extends PaymentModule
             'currency_order' => $currency_order,
             'private_key'=> $privateKey,
             'public_key' => $publicKey,
+            'pse_url' => Context::getContext()->link->getModuleLink('kushkipagos', 'pse'),
             'action' => $this->context->link->getModuleLink($this->name, 'validation', array(), true),
             'iso_code' =>  $this->context->language->iso_code,
             'transfer_COP' =>  Configuration::get('KUSHKIPAGOS_TRANSFER'),
+            'shipping_order' =>  Context::getContext()->cart->getOrderTotal(true,Cart::ONLY_SHIPPING)
         ];
     }
-
 
     public function checkCurrency($cart)
     {
