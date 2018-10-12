@@ -339,7 +339,6 @@ class KushkipagosValidationModuleFrontController extends ModuleFrontController
                     $new_name_tax=str_replace(" ","_",$name_tax);
                     $total_sum_int=$k_p_product['total']*$k_p_product['rate']/100;
                     $amount+=$total_sum_int; // total suma de impuestos en ecuador.
-//                    echo $k_p_product['tax_name'].' : '.$total_sum_int.'<br>';
                     if(array_key_exists($new_name_tax,$extra_taxes)){
                         $extra_taxes[$new_name_tax]+=$k_p_product['total']*($k_p_product['rate']/100);
                     }else{
