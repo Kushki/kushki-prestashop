@@ -169,7 +169,7 @@ class Kushkipagos extends PaymentModule
          */
         if (((bool)Tools::isSubmit('submitKushkipagosModule')) == true) {
             $this->postProcess();
-        }
+        } 
 
         $this->context->smarty->assign('module_dir', $this->_path);
         $this->context->smarty->assign('web_url', $this->context->link->getModuleLink($this->name, 'status', array(), true));
