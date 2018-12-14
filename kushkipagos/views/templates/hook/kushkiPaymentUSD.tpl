@@ -23,14 +23,12 @@
 *  International Registered Trademark & Property of PrestaShop SA
 *}
 <script src="https://cdn-uat.kushkipagos.com/kushki-checkout.js"></script>
-{*<script src="https://p-uat.kushkipagos.com/kushki/kushki/kushki-checkout.js" charset="utf-8"></script>*}
 
 
 
 
 
 <section >
-    {*<form action="{$action}" id="payment-form">*}
 
     <form id="kushki-pay-form" action="{$action}" method="get"   >
         <input type="hidden" name="cart_id"  value="{$params["cookie"]->id_cart}">
@@ -51,6 +49,11 @@
     var kushki = new KushkiCheckout({
         form: "kushki-pay-form",
         merchant_id: "{$public_key}",
+        {if $ambiente_kushki==1 }
+        inTestEnvironment: true,
+        {else}
+        inTestEnvironment: false,
+        {/if}
         is_subscription: false,
         amount: "{$total_wt}",
         currency: "{$currency_order->iso_code}", // Currency code, by default "USD"

@@ -169,7 +169,7 @@ class Kushkipagos extends PaymentModule
          */
         if (((bool)Tools::isSubmit('submitKushkipagosModule')) == true) {
             $this->postProcess();
-        } 
+        }
 
         $this->context->smarty->assign('module_dir', $this->_path);
         $this->context->smarty->assign('web_url', $this->context->link->getModuleLink($this->name, 'status', array(), true));
@@ -351,7 +351,7 @@ class Kushkipagos extends PaymentModule
                 ),
 
             ),
-            
+
         );
     }
 
@@ -402,7 +402,7 @@ class Kushkipagos extends PaymentModule
 
         $logger = new FileLogger(); //0 == nivel de debug. Sin esto logDebug() no funciona.
         $logger->setFilename(_PS_ROOT_DIR_."/kushkiLogs/".date('Y-m-d').".log");
-        
+
         if ($order->getCurrentOrderState()->id != Configuration::get('PS_OS_ERROR')){
             $this->smarty->assign('status', 'ok');
 
@@ -569,7 +569,7 @@ class Kushkipagos extends PaymentModule
             ->setAction($this->context->link->getModuleLink($this->name, 'validation', array(), true))
             ->setAdditionalInformation($setAdditionalInformation);
         return [$newOption];
-        
+
     }
 
 
@@ -600,6 +600,7 @@ class Kushkipagos extends PaymentModule
             'currency_order' => $currency_order,
             'private_key'=> $privateKey,
             'public_key' => $publicKey,
+            'ambiente_kushki'=>Configuration::get('KUSHKIPAGOS_DEV'),
             'pse_url' => Context::getContext()->link->getModuleLink('kushkipagos', 'pse'),
             'action' => $this->context->link->getModuleLink($this->name, 'validation', array(), true),
             'iso_code' =>  $this->context->language->iso_code,

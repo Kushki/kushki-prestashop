@@ -23,7 +23,7 @@
 *  International Registered Trademark & Property of PrestaShop SA
 *}
 <script src="https://cdn-uat.kushkipagos.com/kushki-checkout.js"></script>
-{*<script src="https://p-uat.kushkipagos.com/kushki/kushki/kushki-checkout.js" charset="utf-8"></script>*}
+
 
 <section >
     <form id="kushki-pay-form" action="{$action}" method="get"   >
@@ -43,6 +43,11 @@
         form: "kushki-pay-form",
         merchant_id: "{$public_key}",
         is_subscription: false,
+        {if $ambiente_kushki==1 }
+        inTestEnvironment: true,
+        {else}
+        inTestEnvironment: false,
+        {/if}
         {if isset($transfer_COP) and $transfer_COP==true }
         amount: {
             subtotalIva: {$total_wout },
