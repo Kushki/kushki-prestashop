@@ -42,7 +42,7 @@ class Kushkipagos extends PaymentModule
     {
         $this->name = 'kushkipagos';
         $this->tab = 'payments_gateways';
-        $this->version = '1.1.2';
+        $this->version = '2.1.3';
         $this->author = 'Orizzonte S.A';
         $this->need_instance = 0;
         $this->display = 'view';
