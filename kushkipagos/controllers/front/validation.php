@@ -98,13 +98,15 @@ class KushkipagosValidationModuleFrontController extends ModuleFrontController
          */
         $authorized = false;
         foreach (Module::getPaymentModules() as $module) {
-            if ($module['name'] == 'ps_checkpayment') {
+            if ($module['name'] == 'kushkipagos') {
                 $authorized = true;
                 break;
             }
         }
         if (!$authorized) {
-            $logger->logError('This payment method is not available.');
+            $err_msg=$this->trans('This payment method is not available.', array(), 'Modules.Checkpayment.Shop');
+            $logger->logError($err_msg.' / This payment method is not available');
+            Tools::redirect(Context::getContext()->link->getModuleLink('kushkipagos', 'error', array('error_msg' => $err_msg))); // plantilla de error para módulos nativos
             die($this->trans('This payment method is not available.', array(), 'Modules.Checkpayment.Shop'));
         }
 
