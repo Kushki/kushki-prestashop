@@ -95,6 +95,7 @@ class KushkipagosValidationModuleFrontController extends ModuleFrontController
         /**
          * Verificamos autorización.
          * Fixme: cambiar ps_checkpayment por kushkipagos.
+         * version 2.1.4
          */
         $authorized = false;
         foreach (Module::getPaymentModules() as $module) {
