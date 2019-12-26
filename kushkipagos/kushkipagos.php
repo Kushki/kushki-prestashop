@@ -42,8 +42,8 @@ class Kushkipagos extends PaymentModule
     {
         $this->name = 'kushkipagos';
         $this->tab = 'payments_gateways';
-        $this->version = '2.1.4'; 
-        $this->author = 'Orizzonte S.A';
+        $this->version = '2.1.5';
+        $this->author = 'Kushkipagos S.A';
         $this->need_instance = 0;
         $this->display = 'view';
 
@@ -106,7 +106,8 @@ class Kushkipagos extends PaymentModule
         if( parent::install()
             && $this->registerHook('payment')
             && $this->registerHook('paymentOptions')
-            && $this->registerHook('paymentReturn')){
+            && $this->registerHook('paymentReturn')
+            && $this->registerHook('displayHeader')){
                 return true;
             }else{
             $this->_errors[] = $this->l('No se pudo registrar los hooks payment');
@@ -446,7 +447,7 @@ class Kushkipagos extends PaymentModule
 
                 //estado
                 if ($cookie_pse_status->variable_name == 'approvedTransaction') {
-                    $varpse_status = 'Aprovada';
+                    $varpse_status = 'Aprobada';
                 } elseif ($cookie_pse_status->variable_name == 'initializedTransaction') {
                     $varpse_status = 'Pendiente';
                 } elseif ($cookie_pse_status->variable_name == 'declinedTransaction') {
@@ -570,6 +571,18 @@ class Kushkipagos extends PaymentModule
             ->setAdditionalInformation($setAdditionalInformation);
         return [$newOption];
 
+    }
+
+    public function hookDisplayHeader($params)
+    {
+        if (!$this->active)
+            return;
+
+        $this->context->controller->registerJavascript(
+            'cdn-kushki',
+            'https://cdn-uat.kushkipagos.com/kushki-checkout.js',
+            array('server' => 'remote', 'position' => 'bottom', 'priority' => 150)
+        );
     }
 
 
