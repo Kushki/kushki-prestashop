@@ -42,7 +42,7 @@ class Kushkipagos extends PaymentModule
     {
         $this->name = 'kushkipagos';
         $this->tab = 'payments_gateways';
-        $this->version = '2.1.5';
+        $this->version = '2.1.6';
         $this->author = 'Kushkipagos S.A';
         $this->need_instance = 0;
         $this->display = 'view';
@@ -206,10 +206,8 @@ class Kushkipagos extends PaymentModule
 
         if(Currency::getDefaultCurrency()->iso_code=='COP'){
             return $helper->generateForm(array($this->getConfigFormCOP()));
-        }elseif(Currency::getDefaultCurrency()->iso_code=='USD'){
-            return $helper->generateForm(array($this->getConfigForm()));
         }else{
-            exit;
+            return $helper->generateForm(array($this->getConfigForm()));
         }
 
     }
@@ -557,10 +555,8 @@ class Kushkipagos extends PaymentModule
 
         if($currency_order->iso_code==='COP'){
             $setAdditionalInformation=$this->fetch('module:kushkipagos/views/templates/hook/kushkiPaymentCOP.tpl');
-        }elseif($currency_order->iso_code==='USD'){
-            $setAdditionalInformation=$this->fetch('module:kushkipagos/views/templates/hook/kushkiPaymentUSD.tpl');
-        }else {
-            $this->status_module = false;
+        }else{
+            $setAdditionalInformation=$this->fetch('module:kushkipagos/views/templates/hook/kushkiPayment.tpl');
         }
 
 

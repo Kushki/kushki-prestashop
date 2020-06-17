@@ -126,14 +126,7 @@ class KushkipagosValidationModuleFrontController extends ModuleFrontController
         /**
          * Vemos a que tienda debemos enviar la transacción.
          */
-        if($p_currency==="USD" and $p_currency_det ==="DOLAR"){
-
-
-            $logger->logInfo('KushkiToken set on USD and kushkiDeferred: '.$p_kushkiDeferred);
-            PrestaShopLogger::addLog('kushki USD select to payment, kushkiDeferred: '.$p_kushkiDeferred, 1);
-
-            $transaccion_response =  $this->kushkiUSD($p_cart_id,$p_total_wt,$p_total_wout,$p_kushkiToken,$p_kushkiDeferred,$p_language,$p_env,$p_shipping_order); //tienda USD
-        }elseif($p_currency==="COP" and $p_currency_det ==="PESO") {
+        if($p_currency==="COP" and $p_currency_det ==="PESO") {
 
             //definimos si el pago es por pse o pago con tarjeta
             if ($p_pse_env) {
@@ -153,11 +146,10 @@ class KushkipagosValidationModuleFrontController extends ModuleFrontController
             }
 
         }else{
+            $logger->logInfo('KushkiToken set on USD and kushkiDeferred: '.$p_kushkiDeferred);
+            PrestaShopLogger::addLog('kushki USD select to payment, kushkiDeferred: '.$p_kushkiDeferred, 1);
 
-            $logger->logError('Error on select USD/COP, kushkiDeferred: '.$p_kushkiDeferred);
-            PrestaShopLogger::addLog('Kushki Error on select USD/COP', 3);
-
-            $_internal_status=false;  // mandamos mensaje de error si no existe la pasarela de transacción
+            $transaccion_response =  $this->kushki($p_currency,$p_cart_id,$p_total_wt,$p_total_wout,$p_kushkiToken,$p_kushkiDeferred,$p_language,$p_env,$p_shipping_order); //tienda USD
         }
 
         /**
@@ -292,10 +284,10 @@ class KushkipagosValidationModuleFrontController extends ModuleFrontController
     }
 
     /**
-     * Backend Integration Kushki USD
+     * Backend Integration Kushki
      */
 
-    private function kushkiUSD($_cart_id,$_total_wt,$_total_wout,$_kushkiToken,$_kushkiDeferred,$_language,$_ambiente=0,$_shipping_order=0)
+    private function kushki($_currency, $_cart_id, $_total_wt, $_total_wout, $_kushkiToken, $_kushkiDeferred, $_language, $_ambiente=0, $_shipping_order=0)
     {
         /**
          * Definicion de variables
@@ -366,7 +358,7 @@ class KushkipagosValidationModuleFrontController extends ModuleFrontController
             "subtotalIva0" => $amount0+$_shipping_order,
             "ice" => $ice_total,
             "iva" => $iva_total,
-            "currency" => "USD" //usd para ecuador
+            "currency" => $_currency
         );
 
         // definimos el cuerpo de la petición
