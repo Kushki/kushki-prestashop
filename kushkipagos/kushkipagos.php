@@ -556,7 +556,7 @@ class Kushkipagos extends PaymentModule
         if($currency_order->iso_code==='COP'){
             $setAdditionalInformation=$this->fetch('module:kushkipagos/views/templates/hook/kushkiPaymentCOP.tpl');
         }else{
-            $setAdditionalInformation=$this->fetch('module:kushkipagos/views/templates/hook/kushkiPaymentUSD.tpl');
+            $setAdditionalInformation=$this->fetch('module:kushkipagos/views/templates/hook/kushkiPayment.tpl');
         }
 
 

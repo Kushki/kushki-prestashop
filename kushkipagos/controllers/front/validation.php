@@ -149,7 +149,7 @@ class KushkipagosValidationModuleFrontController extends ModuleFrontController
             $logger->logInfo('KushkiToken set on USD and kushkiDeferred: '.$p_kushkiDeferred);
             PrestaShopLogger::addLog('kushki USD select to payment, kushkiDeferred: '.$p_kushkiDeferred, 1);
 
-            $transaccion_response =  $this->kushkiUSD($p_currency,$p_cart_id,$p_total_wt,$p_total_wout,$p_kushkiToken,$p_kushkiDeferred,$p_language,$p_env,$p_shipping_order); //tienda USD
+            $transaccion_response =  $this->kushki($p_currency,$p_cart_id,$p_total_wt,$p_total_wout,$p_kushkiToken,$p_kushkiDeferred,$p_language,$p_env,$p_shipping_order); //tienda USD
         }
 
         /**
@@ -284,10 +284,10 @@ class KushkipagosValidationModuleFrontController extends ModuleFrontController
     }
 
     /**
-     * Backend Integration Kushki USD
+     * Backend Integration Kushki
      */
 
-    private function kushkiUSD($_currency,$_cart_id,$_total_wt,$_total_wout,$_kushkiToken,$_kushkiDeferred,$_language,$_ambiente=0,$_shipping_order=0)
+    private function kushki($_currency, $_cart_id, $_total_wt, $_total_wout, $_kushkiToken, $_kushkiDeferred, $_language, $_ambiente=0, $_shipping_order=0)
     {
         /**
          * Definicion de variables
