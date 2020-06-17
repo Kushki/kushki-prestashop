@@ -82,7 +82,7 @@
 				<div class="row">
 					{*<img src="{$module_dir|escape:'html':'UTF-8'}views/img/template_1_cards.png" class="col-md-6" id="payment-logo" />*}
 					<div class="col-md-6">
-						<h6 class="text-branded">Para transacciones USD, COP y MXN </h6>
+						<h6 class="text-branded">Para transacciones en Ecuador, Chile, Peru, Colombia y México </h6>
 						{*<p class="text-branded">{l s='Call 888-888-1234 if you have any questions or need more information!' mod='kushkipagos'}</p>*}
 					</div>
 				</div>
