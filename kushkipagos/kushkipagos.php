@@ -206,10 +206,8 @@ class Kushkipagos extends PaymentModule
 
         if(Currency::getDefaultCurrency()->iso_code=='COP'){
             return $helper->generateForm(array($this->getConfigFormCOP()));
-        }elseif(Currency::getDefaultCurrency()->iso_code=='USD'){
-            return $helper->generateForm(array($this->getConfigForm()));
         }else{
-            exit;
+            return $helper->generateForm(array($this->getConfigForm()));
         }
 
     }
@@ -557,10 +555,8 @@ class Kushkipagos extends PaymentModule
 
         if($currency_order->iso_code==='COP'){
             $setAdditionalInformation=$this->fetch('module:kushkipagos/views/templates/hook/kushkiPaymentCOP.tpl');
-        }elseif($currency_order->iso_code==='USD'){
+        }else{
             $setAdditionalInformation=$this->fetch('module:kushkipagos/views/templates/hook/kushkiPaymentUSD.tpl');
-        }else {
-            $this->status_module = false;
         }
 
 
