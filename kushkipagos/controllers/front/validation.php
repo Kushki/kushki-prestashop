@@ -293,6 +293,7 @@ class KushkipagosValidationModuleFrontController extends ModuleFrontController
          * Definicion de variables
          */
         $cart_detail= $this->context->cart; //detalle del cart
+        $customer_details = $this->context->customer;
         $iva_total=0; //iva
         $ice_total=0; //ice
         $extra_taxes=array(); //otros impuestos
@@ -361,12 +362,17 @@ class KushkipagosValidationModuleFrontController extends ModuleFrontController
             "currency" => $_currency
         );
 
+        $obj_contact_details = array(
+            "email" => $customer_details->email
+        );
+
         // definimos el cuerpo de la petición
         $body = array(
             "token" => $_kushkiToken,
             "amount" => $obj_amount,
             "months" =>$meses,
-            "metadata" => $metadata
+            "metadata" => $metadata,
+            "contactDetails"=>$obj_contact_details
         );
 
         //agregamos al objeto el body
@@ -397,6 +403,7 @@ class KushkipagosValidationModuleFrontController extends ModuleFrontController
          * Definicion de variables
          */
         $cart_detail= $this->context->cart; //detalle del cart
+        $customer_details = $this->context->customer;
         $iva_total=0; //iva
         $extra_taxes=array(); //otros impuestos
         $amount=0; //amount con impuestos
@@ -458,6 +465,10 @@ class KushkipagosValidationModuleFrontController extends ModuleFrontController
             "currency" => "COP"
         );
 
+        $obj_contact_details = array(
+            "email" => $customer_details->email
+        );
+
         // anadimos extrataxes si existe algun impuesto nuevo configurado
         if(sizeof($extra_taxes)>0){
             $obj_amount["extraTaxes"]= $extra_taxes;
@@ -468,7 +479,8 @@ class KushkipagosValidationModuleFrontController extends ModuleFrontController
             "token" => $_kushkiToken,
             "amount" => $obj_amount,
             "months" =>$meses,
-            "metadata" => $metadata
+            "metadata" => $metadata,
+            "contactDetails"=>$obj_contact_details
         );
 
         //agregamos al objeto el body
