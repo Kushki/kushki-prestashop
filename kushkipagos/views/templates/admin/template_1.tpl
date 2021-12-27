@@ -91,10 +91,5 @@
 	</div>
 </div>
 
-<div class="panel">
-    <h4>Url para actualizar estados de transacciónes PSE</h4>
-    <strong>{$web_url}</strong>
-</div>
-
 
 

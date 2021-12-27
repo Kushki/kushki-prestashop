@@ -41,6 +41,10 @@ class Transaction {
             return $this->body->ticketNumber;
     }
 
+    public function getPdfUrl() {
+        return $this->body->pdfUrl;
+    }
+
     public function getApprovedAmount() {
         return $this->body->approved_amount;
     }
@@ -61,6 +65,10 @@ class Transaction {
 
     public function getSubscriptionId(){
         return $this->body->subscriptionId;
+    }
+
+    public function isPreauthApproval() {
+        return $this->body->details->transactionStatus == "APPROVAL" && $this->body->details->responseCode == "000";
     }
 }
 

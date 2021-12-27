@@ -25,37 +25,45 @@
 <script src="https://cdn-uat.kushkipagos.com/kushki-checkout.js"></script>
 
 
-
-
-
 <section >
 
     <form id="kushki-pay-form" action="{$action}" method="get"   >
         <input type="hidden" name="cart_id"  value="{$params["cookie"]->id_cart}">
         <input type="hidden" name="total_wt" value="{$total_wt}">
         <input type="hidden" name="total_wout" value="{$total_wout}">
-        <input type="hidden" name="currency" value="{$currency_order->iso_code}">
+        <input type="hidden" name="currency" value="{$currency}">
         <input type="hidden" name="language" value="{$language.iso_code}">
         <input type="hidden" name="shipping_order" value="{$shipping_order}">
         <input type="hidden" name="currency_det" value="DOLAR">
+        <input type="hidden" name="total_tax" value="{$total_tax}">
     </form>
 
-
-    
-    
 </section>
 
 <script type="text/javascript">
     var kushki = new KushkiCheckout({
+        kformId: "PRESTASHOP",
         form: "kushki-pay-form",
-        merchant_id: "{$public_key}",
+        publicMerchantId: "{$public_key}",
+        callback_url: '{$pse_url}',
+        amount: {
+            subtotalIva: {$subtotalIva},
+            subtotalIva0: {$subtotalIva0},
+            ice: {$ice},
+            iva: {$iva}
+        },
+        currency: '{$currency}',
         {if $ambiente_kushki==1 }
         inTestEnvironment: true,
         {else}
         inTestEnvironment: false,
         {/if}
-        is_subscription: false,
-        amount: "{$total_wt}",
-        currency: "{$currency_order->iso_code}", // Currency code, by default "USD"
+        regional:false // Optional
+    });
+</script>
+<script type="text/javascript">
+
+    $( "#pse" ).click(function() {
+        alert( "Handler for .click() called." );
     });
 </script>
