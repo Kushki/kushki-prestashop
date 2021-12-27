@@ -18,6 +18,7 @@ require_once(dirname(__FILE__) . '/lib/KushkiCurrency.php');
 require_once(dirname(__FILE__) . '/lib/KushkiLanguage.php');
 require_once(dirname(__FILE__) . '/lib/KushkiRequest.php');
 require_once(dirname(__FILE__) . '/lib/Transaction.php');
+require_once(dirname(__FILE__) . '/lib/PreAuth.php');
 require_once(dirname(__FILE__) . '/lib/RequestHandler.php');
 require_once(dirname(__FILE__) . '/lib/RequestBuilder.php');
 require_once(dirname(__FILE__) . '/lib/DeferredChargeRequestBuilder.php');

@@ -29,6 +29,9 @@ use kushki\lib\Transaction;
 
 class KushkipagosPseModuleFrontController extends ModuleFrontController
 {
+    const TEST_URL = 'https://api-uat.kushkipagos.com';
+    const PROD_URL = 'https://api.kushkipagos.com';
+
     public function initContent()
     {
         parent::initContent();
@@ -38,106 +41,167 @@ class KushkipagosPseModuleFrontController extends ModuleFrontController
         $total = (float)$cart->getOrderTotal(true, Cart::BOTH);
         $currency = $this->context->currency;
         $customer = new Customer($cart->id_customer);
-        $message = 'transacción con pse';
         $token_response = Tools::getValue('token');
 
 
         // realizamos consulta de base de datos para el token
-        $query = 'SELECT * FROM '._DB_PREFIX_.'kushkipagos WHERE `token` = \''.$token_response.'\' limit 1 ';
-        $_pse_array = Db::getInstance()->executeS($query);
+        $query = 'SELECT * FROM ' . _DB_PREFIX_ . 'kushkipagos WHERE `token` = \'' . $token_response . '\' limit 1 ';
+        $_async_array = Db::getInstance()->executeS($query);
 
         //entorno de la consulta
-        $p_var_env = Configuration::get('KUSHKIPAGOS_DEV');// entorno de desarrollo del módulo
 
-        // url de la cosulta
-        $url_check = 'https://api-uat.kushkipagos.com/transfer/v1/status/' . $token_response;
+        if ($_async_array[0]['message'] == 'card_async') {
+            $message = 'Transaction card_async';
 
-        /**
-         * Defiinimos el private-id
-         */
-        $data["private-merchant-id"] = Configuration::get('KUSHKIPAGOS_PRIVATE_KEY');
+            $url_check = $this->callUrl() . '/card-async/v1/status/' . $token_response;
 
-        /**
-         * Reaizamos el llamado http
-         */
-        $responseRaw = \Httpful\Request::get($url_check)
-            ->sendsJson()
-            ->withStrictSSL()
-            ->addHeaders(array(
-                'private-merchant-id' => $data["private-merchant-id"]
-            ))
-            ->send();
+            $data["private-merchant-id"] = Configuration::get('KUSHKIPAGOS_PRIVATE_KEY');
 
-        $transaccion_result = new Transaction($responseRaw->content_type, $responseRaw->body, $responseRaw->code);
-
-        if ($transaccion_result->isSuccessful()) {
-
-            $cookie1 = new Cookie('pse_kushkiToken'); //make your own cookie
-            $cookie1->setExpire(time() + 120 * 60); // 2 minutes for example
-            $cookie1->variable_name = $responseRaw->body->token;
-            $cookie1->write();
-            $cookie2 = new Cookie('pse_ticketNumber'); //make your own cookie
-            $cookie2->setExpire(time() + 120 * 60); // 2 minutes for example
-            $cookie2->variable_name = $responseRaw->body->ticketNumber;
-            $cookie2->write();
-            $cookie3 = new Cookie('pse_status'); //make your own cookie
-            $cookie3->setExpire(time() + 120 * 60); // 2 minutes for example
-            $cookie3->variable_name = 'initializedTransaction';
-            $cookie3->write();
-            $cookie4 = new Cookie('pse_trazabilityCode'); //make your own cookie
-            $cookie4->setExpire(time() + 120 * 60); // 2 minutes for example
-            $cookie4->variable_name = $responseRaw->body->trazabilityCode;
-            $cookie4->write();
-
-            $payment_status = Configuration::get('PS_OS_BANKWIRE');
-            $cookie5 = new Cookie('pse_statusDetail'); //make your own cookie
-            $cookie5->setExpire(time() + 120 * 60); // 2 minutes for example
-            $cookie5->variable_name = $payment_status;
-            $cookie5->write();
-
-            // variables globales de la consulta para pendiente
-            $_cookieBody= new Cookie('_body_main');
-            $_cookieBody-> setExpire(time() + 120 * 60);
-            $_cookieBody->variable_name = serialize( $responseRaw->body);
-            $_cookieBody->write();
-
-            //bank name
-            $url_bank="https://api-uat.kushkipagos.com/transfer/v1/bankList/";
-            $responseRawBank = \Httpful\Request::get($url_bank)
+            $responseRaw = \Httpful\Request::get($url_check)
                 ->sendsJson()
                 ->withStrictSSL()
                 ->addHeaders(array(
-                    'Public-Merchant-Id' => Configuration::get('KUSHKIPAGOS_PUBLIC_KEY')
+                    'private-merchant-id' => $data["private-merchant-id"],
                 ))
                 ->send();
 
-            foreach ($responseRawBank->body as $bank ){
-                if($responseRaw->body->bankId==$bank->code){
+            $transaction_result = new Transaction($responseRaw->content_type, $responseRaw->body, $responseRaw->code);
 
-                    $_cookieBank= new Cookie('_bankName');
-                    $_cookieBank-> setExpire(time() + 120 * 60);
-                    $_cookieBank->variable_name = $bank->name;
-                    $_cookieBank->write();
-                }
+            if ($transaction_result->isSuccessful()) {
+
+                $cookie2 = new Cookie('card_async_ticketNumber'); //make your own cookie
+                $cookie2->setExpire(time() + 120 * 60); // 2 minutes for example
+                $cookie2->variable_name = $responseRaw->body->ticketNumber;
+                $cookie2->write();
+                $cookie3 = new Cookie('card_async_status'); //make your own cookie
+                $cookie3->setExpire(time() + 120 * 60); // 2 minutes for example
+                $cookie3->variable_name = 'requestedToken';
+                $cookie3->write();
+                $cookie4 = new Cookie('card_async_transactionReference'); //make your own cookie
+                $cookie4->setExpire(time() + 120 * 60); // 2 minutes for example
+                $cookie4->variable_name = $responseRaw->body->transactionReference;
+                $cookie4->write();
+
+                // variables globales de la consulta para pendiente
+                $_cookieBody = new Cookie('_body_main_card_async');
+                $_cookieBody->setExpire(time() + 120 * 60);
+                $_cookieBody->variable_name =$responseRaw->body->created/1000;
+                $_cookieBody->write();
+
+                Tools::redirect('index.php?controller=order-confirmation&id_cart=' . $_async_array[0]['cart_id'] . '&id_module=' . (int)$this->module->id . '&id_order=' . $_async_array[0]['order_id'] . '&key=' . $customer->secure_key);
+
+
+            } else {
+                $payment_status = Configuration::get('PS_OS_ERROR');
+
+                /**
+                 * Generamos la validación de la orden del carrito
+                 */
+                $this->module->validateOrder((int)$cart->id, $payment_status, $total, $module_name, $message, array(), (int)$currency->id, false, $customer->secure_key);
+
+                /**
+                 * Cargamos la pantalla de confirmación del pedido
+                 */
+                Tools::redirect('index.php?controller=order-confirmation&id_cart=' . (int)$cart->id . '&id_module=' . (int)$this->module->id . '&id_order=' . $this->module->currentOrder . '&key=' . $customer->secure_key);
+
             }
 
-            Tools::redirect('index.php?controller=order-confirmation&id_cart=' . $_pse_array[0]['cart_id'] . '&id_module=' . (int)$this->module->id . '&id_order=' . $_pse_array[0]['order_id'] . '&key=' . $customer->secure_key);
-
         } else {
-            $payment_status = Configuration::get('PS_OS_ERROR');
+            $message = 'Transfer Transaction';
+            // url de la cosulta
+            $url_check = $this->callUrl() . '/transfer/v1/status/' . $token_response;
 
             /**
-             * Generamos la validación de la orden del carrito
+             * Defiinimos el private-id
              */
-            $this->module->validateOrder((int)$cart->id, $payment_status, $total, $module_name, $message, array(), (int)$currency->id, false, $customer->secure_key);
+            $data["private-merchant-id"] = Configuration::get('KUSHKIPAGOS_PRIVATE_KEY');
 
             /**
-             * Cargamos la pantalla de confirmación del pedido
+             * Reaizamos el llamado http
              */
-            Tools::redirect('index.php?controller=order-confirmation&id_cart=' . (int)$cart->id . '&id_module=' . (int)$this->module->id . '&id_order=' . $this->module->currentOrder . '&key=' . $customer->secure_key);
+            $responseRaw = \Httpful\Request::get($url_check)
+                ->sendsJson()
+                ->withStrictSSL()
+                ->addHeaders(array(
+                    'private-merchant-id' => $data["private-merchant-id"],
+                ))
+                ->send();
 
+            $transaccion_result = new Transaction($responseRaw->content_type, $responseRaw->body, $responseRaw->code);
+
+            if ($transaccion_result->isSuccessful()) {
+
+                $cookie2 = new Cookie('transfer_ticketNumber'); //make your own cookie
+                $cookie2->setExpire(time() + 120 * 60); // 2 minutes for example
+                $cookie2->variable_name = $responseRaw->body->ticketNumber;
+                $cookie2->write();
+
+                $cookie3 = new Cookie('transfer_status'); //make your own cookie
+                $cookie3->setExpire(time() + 120 * 60); // 2 minutes for example
+                $cookie3->variable_name = 'initializedTransaction';
+                $cookie3->write();
+
+                $cookie4 = new Cookie('transfer_trazabilityCode'); //make your own cookie
+                $cookie4->setExpire(time() + 120 * 60); // 2 minutes for example
+                $cookie4->variable_name = $responseRaw->body->trazabilityCode;
+                $cookie4->write();
+
+                $payment_status = Configuration::get('PS_OS_BANKWIRE');
+                $cookie5 = new Cookie('transfer_statusDetail'); //make your own cookie
+                $cookie5->setExpire(time() + 120 * 60); // 2 minutes for example
+                $cookie5->variable_name = $payment_status;
+                $cookie5->write();
+
+                // variables globales de la consulta para pendiente
+                $_cookieBody = new Cookie('_body_main');
+                $_cookieBody->setExpire(time() + 120 * 60);
+                $_cookieBody->variable_name = serialize($responseRaw->body);
+                $_cookieBody->write();
+
+                // bank name
+                $url_bank = $this->callUrl() . "/transfer/v1/bankList/";
+                $responseRawBank = \Httpful\Request::get($url_bank)
+                    ->sendsJson()
+                    ->withStrictSSL()
+                    ->addHeaders(array(
+                        'Public-Merchant-Id' => Configuration::get('KUSHKIPAGOS_PUBLIC_KEY')
+                    ))
+                    ->send();
+
+                foreach ($responseRawBank->body as $bank) {
+                    if ($responseRaw->body->bankId == $bank->code) {
+
+                        $_cookieBank = new Cookie('_bankName');
+                        $_cookieBank->setExpire(time() + 120 * 60);
+                        $_cookieBank->variable_name = $bank->name;
+                        $_cookieBank->write();
+                    }
+                }
+
+                Tools::redirect('index.php?controller=order-confirmation&id_cart=' . $_async_array[0]['cart_id'] . '&id_module=' . (int)$this->module->id . '&id_order=' . $_async_array[0]['order_id'] . '&key=' . $customer->secure_key);
+
+            } else {
+                $payment_status = Configuration::get('PS_OS_ERROR');
+
+                /**
+                 * Generamos la validación de la orden del carrito
+                 */
+                $this->module->validateOrder((int)$cart->id, $payment_status, $total, $module_name, $message, array(), (int)$currency->id, false, $customer->secure_key);
+
+                /**
+                 * Cargamos la pantalla de confirmación del pedido
+                 */
+                Tools::redirect('index.php?controller=order-confirmation&id_cart=' . (int)$cart->id . '&id_module=' . (int)$this->module->id . '&id_order=' . $this->module->currentOrder . '&key=' . $customer->secure_key);
+
+            }
         }
 
     }
 
+    private function callUrl()
+    {
+        $env = Configuration::get('KUSHKIPAGOS_DEV');// entorno de desarrollo del módulo
+
+        return !$env ? self::PROD_URL : self::TEST_URL;
+    }
 }

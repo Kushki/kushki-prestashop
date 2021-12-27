@@ -19,28 +19,27 @@ class KushkipagosStatusModuleFrontController extends ModuleFrontController
 
         //set variables
         $app_secret = Configuration::get('KUSHKIPAGOS_PRIVATE_KEY');
-        $ps_status_accept = array("declinedTransaction", "approvedTransaction", "initializedTransaction");
+        $ps_status_accept = array("DECLINED", "APPROVAL", "INITIALIZED");
 
         // decode as associative array
         $body = trim(file_get_contents('php://input'));
         $decoded = json_decode($body, true);
 
-        $body1=json_encode($body).$kushki_id;
         //variables locales
         $ps_token = $decoded['token'];
         $ps_status = $decoded['status'];
 
 
-        $expected_signature = hash_hmac('sha256', $kushki_id, $app_secret, false);
+        //$expected_signature = hash_hmac('sha256', $kushki_id, $app_secret, false);
 
-        $logger->logInfo('------- webhook run:  expected_signature: '.$expected_signature.' webhook_signature-simple: '. $webhook_simple_signature . ' -------');
-        $logger->logInfo('------- webhook run:  expected_signature: '.$expected_signature.' webhook_signature: '. $webhook_signature . ' -------');
+        //$logger->logInfo('------- webhook run:  expected_signature: '.$expected_signature.' webhook_signature-simple: '. $webhook_simple_signature . ' -------');
+        //$logger->logInfo('------- webhook run:  expected_signature: '.$expected_signature.' webhook_signature: '. $webhook_signature . ' -------');
 
         /**
          * para el funcionamiento de la firmas descomentar las lineas 42,90-96
          */
 
-        if ($webhook_simple_signature == $expected_signature) {
+        //if ($webhook_simple_signature == $expected_signature) {
 
             if (isset($ps_token) and !empty($ps_token)) {
 
@@ -88,24 +87,24 @@ class KushkipagosStatusModuleFrontController extends ModuleFrontController
                 header("Status: 400 Invalid token!");
 
             }
-        } else {
+        /*} else {
             //error en signature
             $result['code'] = 401;
             $result['message'] = 'Not authenticated!';
             $logger->logError('------- webhook run token: ' . $ps_token . ' error: '.$result['code'].' '. $result['message'] . ' -------');
             header("Status: 401 Not authenticated");
-        }
+        }*/
         die(Tools::jsonEncode($result));
     }
 
-    private function updateStatusOrder ($order_id,$OrderState){
+    private function updateStatusOrder ($order_id,$OrderState): bool{
 
 
-        if ($OrderState == 'approvedTransaction') {
+        if ($OrderState == 'APPROVAL') {
             $payment_status = Configuration::get('PS_OS_PAYMENT');
-        } elseif ($OrderState == 'initializedTransaction') {
+        } elseif ($OrderState == 'INITIALIZED') {
             $payment_status = Configuration::get('PS_OS_BANKWIRE');
-        } elseif ($OrderState == 'declinedTransaction') {
+        } elseif ($OrderState == 'DECLINED') {
             $payment_status = Configuration::get('PS_OS_ERROR');
         } else {
             $payment_status = Configuration::get('PS_OS_ERROR');
@@ -136,22 +135,19 @@ class KushkipagosStatusModuleFrontController extends ModuleFrontController
                     $templateVars = array('{followup}' => str_replace('@', $order->shipping_number, $carrier->url));
                 }
 
+                $history->addWithemail(true, $templateVars);
                 // Save all changes
-                if ($history->addWithemail(true, $templateVars)) {
-                    // synchronizes quantities if needed..
-                    if (Configuration::get('PS_ADVANCED_STOCK_MANAGEMENT')) {
-                        foreach ($order->getProducts() as $product) {
-                            if (StockAvailable::dependsOnStock($product['product_id'])) {
-                                StockAvailable::synchronize($product['product_id'], (int)$product['id_shop']);
-                            }
+                if (Configuration::get('PS_ADVANCED_STOCK_MANAGEMENT')) {
+                    foreach ($order->getProducts() as $product) {
+                        if (StockAvailable::dependsOnStock($product['product_id'])) {
+                            StockAvailable::synchronize($product['product_id'], (int)$product['id_shop']);
                         }
                     }
-                    $query = 'UPDATE '._DB_PREFIX_.'kushkipagos SET `updated_at` = NOW(), `status` = \''.$OrderState.'\' WHERE `order_id` = '.$order_id.' ';
-                    Db::getInstance()->execute($query);
-
-                    return true;
                 }
-                $this->errors[] = $this->trans('An error occurred while changing order status, or we were unable to send an email to the customer.', array(), 'Admin.Orderscustomers.Notification');
+                $query = 'UPDATE '._DB_PREFIX_.'kushkipagos SET `updated_at` = NOW(), `status` = \''.$OrderState.'\' WHERE `order_id` = '.$order_id.' ';
+                Db::getInstance()->execute($query);
+                return true;
+                //$this->errors[] = $this->trans('An error occurred while changing order status, or we were unable to send an email to the customer.', array(), 'Admin.Orderscustomers.Notification');
             } else {
                 $this->errors[] = $this->trans('The order has already been assigned this status.', array(), 'Admin.Orderscustomers.Notification');
             }

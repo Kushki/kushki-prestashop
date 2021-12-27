@@ -30,36 +30,34 @@
         <input type="hidden" name="cart_id"  value="{$params["cookie"]->id_cart}">
         <input type="hidden" name="total_wt" value="{$total_wt}">
         <input type="hidden" name="total_wout" value="{$total_wout}">
-        <input type="hidden" name="currency" value="{$currency_order->iso_code}">
+        <input type="hidden" name="currency" value="{$currency}">
         <input type="hidden" name="language" value="{$language.iso_code}">
         <input type="hidden" name="shipping_order" value="{$shipping_order}">
         <input type="hidden" name="currency_det" value="PESO">
+        <input type="hidden" name="total_tax" value="{$total_tax}">
     </form>
-    
+
 </section>
 
 <script type="text/javascript">
     var kushki = new KushkiCheckout({
+        kformId: "PRESTASHOP",
         form: "kushki-pay-form",
-        merchant_id: "{$public_key}",
-        is_subscription: false,
+        publicMerchantId: "{$public_key}",
+        callback_url: '{$pse_url}',
+        amount: {
+            subtotalIva: {$subtotalIva},
+            subtotalIva0: {$subtotalIva0},
+            ice: {$ice},
+            iva: {$iva}
+        },
+        currency: '{$currency}',
         {if $ambiente_kushki==1 }
         inTestEnvironment: true,
         {else}
         inTestEnvironment: false,
         {/if}
-        {if isset($transfer_COP) and $transfer_COP==true }
-        amount: {
-            subtotalIva: {$total_wout },
-            subtotalIva0: 0,
-            iva: {$total_wt - $total_wout }
-            },
-            callback_url: '{$pse_url}',
-            payment_methods:["transfer","credit-card"] ,// optional default credit-card
-        {else}
-        amount: "{$total_wt}",
-        {/if}
-        currency: "{$currency_order->iso_code}", // Currency code, by default "USD"
+        regional:false // Optional
     });
 </script>
 <script type="text/javascript">
