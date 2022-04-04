@@ -158,7 +158,7 @@ class KushkipagosValidationModuleFrontController extends ModuleFrontController
                         $cookie_flag->write();
 
                         $cookie1 = new Cookie('card_async_flag'); //make your own cookie
-                        $cookie1->setExpire(time() + 300); // 2 minutes for example
+                        $cookie1->setExpire(time() + 900); // 15 minutes
                         $cookie1->variable_name = 1;
                         $cookie1->write();
 
