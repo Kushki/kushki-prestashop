@@ -50,7 +50,7 @@ class Kushkipagos extends PaymentModule
     {
         $this->name = 'kushkipagos';
         $this->tab = 'payments_gateways';
-        $this->version = '3.0.2';
+        $this->version = '3.0.4';
         $this->author = 'Kushkipagos';
         $this->need_instance = 0;
         $this->display = 'view';
@@ -663,14 +663,14 @@ class Kushkipagos extends PaymentModule
                 } else {
                     PrestaShopLogger::addLog('Kushki Refund FALLIDO en orden '.$order->id.' Message ' . $refund->getResponseText(), 3);
                     throw new InvalidOrderStateException(
-                        InvalidOrderStateException::DELIVERY_NOT_FOUND, 'Hubo un error en el refund de esta orden.',
+                        InvalidOrderStateException::DELIVERY_NOT_FOUND, 'Hubo un error en el refund de esta orden.'
                     );
                 }
             }
 
         } else if ($params['action'] === CancellationActionType::PARTIAL_REFUND) {
             throw new InvalidOrderStateException(
-                InvalidOrderStateException::DELIVERY_NOT_FOUND, 'kushki no puede hacer devoluciones parciales, debe hacer la devolución del total del pedido',
+                InvalidOrderStateException::DELIVERY_NOT_FOUND, 'kushki no puede hacer devoluciones parciales, debe hacer la devolución del total del pedido'
             );
         }
     }
@@ -856,7 +856,7 @@ class Kushkipagos extends PaymentModule
                 PrestaShopLogger::addLog('Kushki Capture FALLIDO en orden '.$order_id.' Message: ' . $capture->getResponseText(), 3);
 
                 throw new InvalidOrderStateException(
-                    InvalidOrderStateException::NOT_PAID, 'Hubo un error al procesar el capture de esta orden.',
+                    InvalidOrderStateException::NOT_PAID, 'Hubo un error al procesar el capture de esta orden.'
                 );
             }
         }else{
@@ -866,7 +866,7 @@ class Kushkipagos extends PaymentModule
             PrestaShopLogger::addLog('No se puede ejecutar un capture sobre la orden: '.$order_id.' en preauth con estado fallido', 3);
 
             throw new InvalidOrderStateException(
-                InvalidOrderStateException::NOT_PAID, 'No se puede ejecutar el capture sobre la orden en preauth con estado fallido.',
+                InvalidOrderStateException::NOT_PAID, 'No se puede ejecutar el capture sobre la orden en preauth con estado fallido.'
             );
         }
     }

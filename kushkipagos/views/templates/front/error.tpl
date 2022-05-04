@@ -22,66 +22,27 @@
 *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
 *  International Registered Trademark & Property of PrestaShop SA
 *}
-
-<!-- Header part menu -->
-<head>
-	{block name='head'}
-		{include file='_partials/head.tpl'}
-	{/block}
-</head>
-
-<body>
-{hook h='displayAfterBodyOpeningTag'}
-<main>
-	<!-- Menu part-->
-	<header id="header">
-		{block name='header'}
-			{include file='_partials/header.tpl'}
-		{/block}
-	</header>
-
-	<!-- Header part ends -->
-
-	<section id="wrapper">
-		<div class="container">
-
-			<section id="main">
-				<section id="content" class="page-content card card-block">
-					{include file='_partials/breadcrumb.tpl'}
-					<h2>Error al realizar el pago con Kushki</h2>
-
+{extends $layout}
+{block name="content"}
+    <section id="wrapper">
+        <div class="container">
+            <section id="main">
+                <section id="content" class="page-content card card-block">
+                    <h2>Error al realizar el pago con Kushki</h2>
                     <br>
-					<div class="table-responsive-row clearfix">
-						<p>
-							{$error_kushki}
-						</p>
+                    <div class="table-responsive-row clearfix">
+                        <p>
+                            {$error_kushki}
+                        </p>
                         <br>
-						<p>
+                        <p>
                         <div class="col-xs-12 col-md-4 text-center">
-                            <a href="{$redirect}" class="btn btn-info" id="create-account-btn">Regresar al carrito de compras</a><br />
+                            <a href="{$redirect}" class="btn btn-primary">Regresar al carrito de compras</a><br/>
                         </div>
                         </p>
-					</div>
-
-
-
-				</section>
-			</section>
-		</div>
-	</section>
-	<!-- Footer starts -->
-
-	<footer id="footer">
-		{block name="footer"}
-			{include file="_partials/footer.tpl"}
-		{/block}
-	</footer>
-	<!-- Footer Ends -->
-	{block name='javascript_bottom'}
-		{include file="_partials/javascript.tpl" javascript=$javascript.bottom}
-	{/block}
-	{hook h='displayBeforeBodyClosingTag'}
-</main>
-
-</body>
-
+                    </div>
+                </section>
+            </section>
+        </div>
+    </section>
+{/block}
