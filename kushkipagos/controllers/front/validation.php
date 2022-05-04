@@ -162,7 +162,6 @@ class KushkipagosValidationModuleFrontController extends ModuleFrontController
                         $cookie1->variable_name = 1;
                         $cookie1->write();
 
-                        $this->module->validateOrder((int)$cart->id, $payment_status, $total, $module_name, $message, array(), (int)$currency->id, false, $customer->secure_key);
                         $this->saveDataBase('Card Async',$kushkiToken,"", (int)$cart->id,$payment_status,$total,$module_name,$kushkiPaymentMethod,(int)$currency->id,$customer->secure_key,'initializedTransaction');
 
                         $logger->logInfo('Redirect to card async');
@@ -459,6 +458,7 @@ class KushkipagosValidationModuleFrontController extends ModuleFrontController
         else
             $protocol = 'http';
 
+        $baseUri = rtrim(__PS_BASE_URI__, "/");
         // definimos el cuerpo de la petición
         $body = array(
             "token" => $_kushkiToken,
@@ -469,7 +469,7 @@ class KushkipagosValidationModuleFrontController extends ModuleFrontController
             "channel" => "PRESTASHOP",
             "activationMethod" => $activationMethod,
             "paymentMethod" => $paymentMethod,
-            "storeDomain" => $protocol."://".$_SERVER['SERVER_NAME']
+            "storeDomain" => $protocol."://".$_SERVER['SERVER_NAME'].($baseUri ? $baseUri : '')
         );
 
         if ($p_kushkiPaymentMethod == "card") {

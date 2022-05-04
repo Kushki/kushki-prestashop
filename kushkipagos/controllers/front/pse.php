@@ -18,12 +18,12 @@
  * versions in the future. If you wish to customize PrestaShop for your
  * needs please refer to http://www.prestashop.com for more information.
  *
- *  @author    PrestaShop SA <contact@prestashop.com>
- *  @copyright 2007-2018 PrestaShop SA
- *  @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
+ * @author    PrestaShop SA <contact@prestashop.com>
+ * @copyright 2007-2018 PrestaShop SA
+ * @license   http://opensource.org/licenses/afl-3.0.php  Academic Free License (AFL 3.0)
  *  International Registered Trademark & Property of PrestaShop SA
  */
-include_once _PS_MODULE_DIR_.'kushkipagos/classes/kushki/autoload.php';
+include_once _PS_MODULE_DIR_ . 'kushkipagos/classes/kushki/autoload.php';
 
 use kushki\lib\Transaction;
 
@@ -46,11 +46,13 @@ class KushkipagosPseModuleFrontController extends ModuleFrontController
 
         // realizamos consulta de base de datos para el token
         $query = 'SELECT * FROM ' . _DB_PREFIX_ . 'kushkipagos WHERE `token` = \'' . $token_response . '\' limit 1 ';
-        $_async_array = Db::getInstance()->executeS($query);
+        [$payment] = Db::getInstance()->executeS($query);
+        ["cart_id" => $cart_id] = $payment;
+
 
         //entorno de la consulta
 
-        if ($_async_array[0]['message'] == 'card_async') {
+        if ($payment['message'] == 'card_async') {
             $message = 'Transaction card_async';
 
             $url_check = $this->callUrl() . '/card-async/v1/status/' . $token_response;
@@ -65,9 +67,12 @@ class KushkipagosPseModuleFrontController extends ModuleFrontController
                 ))
                 ->send();
 
+            $status = $responseRaw->body->status;
+            $is_declined = $status === "declinedTransaction";
             $transaction_result = new Transaction($responseRaw->content_type, $responseRaw->body, $responseRaw->code);
 
-            if ($transaction_result->isSuccessful()) {
+            if ($transaction_result->isSuccessful() && !$is_declined) {
+                $payment_status = Configuration::get('PS_OS_BANKWIRE');
 
                 $cookie2 = new Cookie('card_async_ticketNumber'); //make your own cookie
                 $cookie2->setExpire(time() + 120 * 60); // 2 minutes for example
@@ -85,26 +90,19 @@ class KushkipagosPseModuleFrontController extends ModuleFrontController
                 // variables globales de la consulta para pendiente
                 $_cookieBody = new Cookie('_body_main_card_async');
                 $_cookieBody->setExpire(time() + 120 * 60);
-                $_cookieBody->variable_name =$responseRaw->body->created/1000;
+                $_cookieBody->variable_name = $responseRaw->body->created / 1000;
                 $_cookieBody->write();
 
-                Tools::redirect('index.php?controller=order-confirmation&id_cart=' . $_async_array[0]['cart_id'] . '&id_module=' . (int)$this->module->id . '&id_order=' . $_async_array[0]['order_id'] . '&key=' . $customer->secure_key);
+                $this->module->validateOrder($cart_id, $payment_status, $total, $module_name, $message, array(), (int)$currency->id, false, $customer->secure_key);
+                $order_id = $this->module->currentOrder;
+
+                $this->updateKushkipagos($token_response, $payment_status, $order_id, $status);
 
 
-            } else {
-                $payment_status = Configuration::get('PS_OS_ERROR');
+                Tools::redirect('index.php?controller=order-confirmation&id_cart=' . $cart_id . '&id_module=' . (int)$this->module->id . '&id_order=' . $order_id . '&key=' . $customer->secure_key);
 
-                /**
-                 * Generamos la validación de la orden del carrito
-                 */
-                $this->module->validateOrder((int)$cart->id, $payment_status, $total, $module_name, $message, array(), (int)$currency->id, false, $customer->secure_key);
-
-                /**
-                 * Cargamos la pantalla de confirmación del pedido
-                 */
-                Tools::redirect('index.php?controller=order-confirmation&id_cart=' . (int)$cart->id . '&id_module=' . (int)$this->module->id . '&id_order=' . $this->module->currentOrder . '&key=' . $customer->secure_key);
-
-            }
+            } else
+                Tools::redirect('index.php?controller=order');
 
         } else {
             $message = 'Transfer Transaction';
@@ -178,7 +176,7 @@ class KushkipagosPseModuleFrontController extends ModuleFrontController
                     }
                 }
 
-                Tools::redirect('index.php?controller=order-confirmation&id_cart=' . $_async_array[0]['cart_id'] . '&id_module=' . (int)$this->module->id . '&id_order=' . $_async_array[0]['order_id'] . '&key=' . $customer->secure_key);
+                Tools::redirect('index.php?controller=order-confirmation&id_cart=' . $cart_id . '&id_module=' . (int)$this->module->id . '&id_order=' . $payment['order_id'] . '&key=' . $customer->secure_key);
 
             } else {
                 $payment_status = Configuration::get('PS_OS_ERROR');
@@ -203,5 +201,11 @@ class KushkipagosPseModuleFrontController extends ModuleFrontController
         $env = Configuration::get('KUSHKIPAGOS_DEV');// entorno de desarrollo del módulo
 
         return !$env ? self::PROD_URL : self::TEST_URL;
+    }
+
+    private function updateKushkipagos($token, $payment_status, $order_id, $status)
+    {
+        $query = 'UPDATE ' . _DB_PREFIX_ . 'kushkipagos SET `updated_at` = NOW(), `payment_status` = \'' . $payment_status . '\', `status` = \'' . $status . '\', `order_id` = ' . $order_id . ' WHERE `token` = \'' . $token . '\' ';
+        Db::getInstance()->executeS($query);
     }
 }
