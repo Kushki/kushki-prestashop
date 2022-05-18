@@ -453,10 +453,8 @@ class KushkipagosValidationModuleFrontController extends ModuleFrontController
                 break;
         }
 
-        if (isset($_SERVER["HTTPS"]) && $_SERVER["HTTPS"] == "on")
-            $protocol = 'https';
-        else
-            $protocol = 'http';
+        
+        $protocol = Configuration::get('PS_SSL_ENABLED') ? 'https' : 'http';
 
         $baseUri = rtrim(__PS_BASE_URI__, "/");
         // definimos el cuerpo de la petición
