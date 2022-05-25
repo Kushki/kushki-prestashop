@@ -42,7 +42,7 @@ class Kushkipagos extends PaymentModule
     private $key_public;
     private $key_private;
     private $status_module= true;
-    const PLUGIN_URL = 'https://api.kushkipagos.com/plugin/v1/';
+    const PLUGIN_URL = 'https://api.kushkipagos.com/plugins/v1/';
     const TEST_PLUGIN_URL = 'https://api-uat.kushkipagos.com/plugins/v1/';
     const CAPTURE = 'capture';
 
@@ -50,7 +50,7 @@ class Kushkipagos extends PaymentModule
     {
         $this->name = 'kushkipagos';
         $this->tab = 'payments_gateways';
-        $this->version = '3.0.5';
+        $this->version = '3.0.6';
         $this->author = 'Kushkipagos';
         $this->need_instance = 0;
         $this->display = 'view';

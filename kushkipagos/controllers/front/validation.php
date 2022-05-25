@@ -32,7 +32,7 @@ use kushki\lib\PreAuth;
 
 class KushkipagosValidationModuleFrontController extends ModuleFrontController
 {
-    const PLUGIN_URL = 'https://api.kushkipagos.com/plugin/v1/';
+    const PLUGIN_URL = 'https://api.kushkipagos.com/plugins/v1/';
     const TEST_PLUGIN_URL = 'https://api-uat.kushkipagos.com/plugins/v1/';
     const PREAUTH = 'preAuth';
     const CHARGE = 'charge';
@@ -453,7 +453,7 @@ class KushkipagosValidationModuleFrontController extends ModuleFrontController
                 break;
         }
 
-        
+
         $protocol = Configuration::get('PS_SSL_ENABLED') ? 'https' : 'http';
 
         $baseUri = rtrim(__PS_BASE_URI__, "/");
