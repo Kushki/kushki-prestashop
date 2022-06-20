@@ -28,7 +28,7 @@ use kushki\lib\Transaction;
 include_once _PS_MODULE_DIR_.'kushkipagos/classes/kushki/autoload.php';
 
 use PrestaShop\PrestaShop\Core\Domain\Order\CancellationActionType;
-use PrestaShop\PrestaShop\Core\Domain\Order\Exception\InvalidOrderStateException;
+use PrestaShop\PrestaShop\Core\Domain\Order\Exception\OrderException;
 use PrestaShop\PrestaShop\Core\Payment\PaymentOption;
 
 if (!defined('_PS_VERSION_')) {
@@ -50,7 +50,7 @@ class Kushkipagos extends PaymentModule
     {
         $this->name = 'kushkipagos';
         $this->tab = 'payments_gateways';
-        $this->version = '3.0.6';
+        $this->version = '3.0.7';
         $this->author = 'Kushkipagos';
         $this->need_instance = 0;
         $this->display = 'view';
@@ -662,16 +662,12 @@ class Kushkipagos extends PaymentModule
                     $this->saveDataRefund($kushkiToken, $refund->getTicketNumber(), $cart_id, (int)$order->id, (int)Configuration::get('PS_OS_REFUND'), $order->total_paid, "kushkipagos", "refund", (int)$order->id_currency, $order->secure_key, "initialized" );
                 } else {
                     PrestaShopLogger::addLog('Kushki Refund FALLIDO en orden '.$order->id.' Message ' . $refund->getResponseText(), 3);
-                    throw new InvalidOrderStateException(
-                        InvalidOrderStateException::DELIVERY_NOT_FOUND, 'Hubo un error en el refund de esta orden.'
-                    );
+                    throw new OrderException('Hubo un error en el refund de esta orden.');
                 }
             }
 
         } else if ($params['action'] === CancellationActionType::PARTIAL_REFUND) {
-            throw new InvalidOrderStateException(
-                InvalidOrderStateException::DELIVERY_NOT_FOUND, 'kushki no puede hacer devoluciones parciales, debe hacer la devolución del total del pedido'
-            );
+            throw new OrderException('Kushki no puede hacer devoluciones parciales, debe hacer la devolución del total del pedido');
         }
     }
 
@@ -855,9 +851,7 @@ class Kushkipagos extends PaymentModule
                 $logger->logError('Kushki Capture FALLIDO en orden '.$order_id.' Message ' . $capture->getResponseText());
                 PrestaShopLogger::addLog('Kushki Capture FALLIDO en orden '.$order_id.' Message: ' . $capture->getResponseText(), 3);
 
-                throw new InvalidOrderStateException(
-                    InvalidOrderStateException::NOT_PAID, 'Hubo un error al procesar el capture de esta orden.'
-                );
+                throw new OrderException('Hubo un error al procesar el capture de esta orden.');
             }
         }else{
             $history->changeIdOrderState(8, (int)($order_id));
@@ -865,9 +859,7 @@ class Kushkipagos extends PaymentModule
             $logger->logError('No se puede ejecutar un capture sobre la orden: '.$order_id.' en preauth con estado fallido');
             PrestaShopLogger::addLog('No se puede ejecutar un capture sobre la orden: '.$order_id.' en preauth con estado fallido', 3);
 
-            throw new InvalidOrderStateException(
-                InvalidOrderStateException::NOT_PAID, 'No se puede ejecutar el capture sobre la orden en preauth con estado fallido.'
-            );
+            throw new OrderException('No se puede ejecutar el capture sobre la orden en preauth con estado fallido.');
         }
     }
 
