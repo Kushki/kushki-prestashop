@@ -124,7 +124,13 @@ class KushkipagosValidationModuleFrontController extends ModuleFrontController
          * Vemos si es preauth or charge.
          */
 
-        if($kushkiPaymentMethod == "preauth" ){
+        if(empty($kushkiToken)) {
+            $error_message = 'Kushki Error 017: Tarjeta no válida';
+            $ex_detailed_message = $this->trans('An error occurred while processing payment: ' . $error_message, array(), 'Modules.Checkpayment.Shop');
+            Tools::redirect(Context::getContext()->link->getModuleLink('kushkipagos', 'error', array('error_msg' => $ex_detailed_message)));
+            return;
+        }
+        if($kushkiPaymentMethod == "preauth"){
             // Obtener Payload
             $payload = $this->getPayloadPreAuth( $customer, $address, $kushkiCurrency, $cartId, $totalWt, $kushkiToken );
 
@@ -318,7 +324,11 @@ class KushkipagosValidationModuleFrontController extends ModuleFrontController
                 /**
                  * Se define el mensaje de error al final.
                  */
-                $error_message= "Kushki Error " . $transaction_response->getResponseCode() . ": " . $transaction_response->getResponseText();// mensaje con el error response de kushki
+                if($transaction_response->getResponseCode() == "PLG007") {
+                    $error_message = 'Kushki Error 017: Tarjeta no válida';
+                } else {
+                    $error_message = "Kushki Error: " . $transaction_response->getResponseCode() . ": " . $transaction_response->getResponseText();
+                }// mensaje con el error response de kushki
                 PrestaShopLogger::addLog($error_message, 3);
                 $logger->logError($error_message);
 
