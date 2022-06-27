@@ -50,7 +50,7 @@ class Kushkipagos extends PaymentModule
     {
         $this->name = 'kushkipagos';
         $this->tab = 'payments_gateways';
-        $this->version = '3.0.7';
+        $this->version = '3.0.8';
         $this->author = 'Kushkipagos';
         $this->need_instance = 0;
         $this->display = 'view';
