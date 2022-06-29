@@ -125,7 +125,7 @@
 				<h3 style="color: darkgreen">El pago con tarjeta en {$shop_name} por medio de kushki ha sido confirmado. </h3>
 			{/if}
 			{if (isset($pdfUrl))}
-				<h3 style="color: darkgreen">El pago con Efectivo en {$shop_name} por medio de kushki ha sido confirmado. </h3>
+				<h3 style="color: darkgreen" >El pago con efectivo en {$shop_name} mediante kushki se encuentra pendiente, una vez confirmado el pago será notificado por correo electrónico,</h3>
 			{/if}
 			<p style="color: darkgreen">
 				<br />- Valor del pago : <span class="price"><strong>{$total_to_pay|escape:'htmlall':'UTF-8'}</strong></span>
