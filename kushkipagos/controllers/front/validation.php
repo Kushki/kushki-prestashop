@@ -634,7 +634,7 @@ class KushkipagosValidationModuleFrontController extends ModuleFrontController
     private function getSiftScienceFields($cart_detail, $customer_details, $address) {
         foreach ($cart_detail->getProducts() as $k_p_product) {
             $product [] = array(
-                "id" => $k_p_product['id_product'],
+                "id" => strval($k_p_product['id_product']),
                 "title" => $k_p_product['name'],
                 "price" => $k_p_product['price'],
                 "quantity" => intval($k_p_product['cart_quantity']),
