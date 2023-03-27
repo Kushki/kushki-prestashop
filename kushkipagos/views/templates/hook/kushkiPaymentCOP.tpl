@@ -57,7 +57,10 @@
         {else}
         inTestEnvironment: false,
         {/if}
-        regional:false // Optional
+        regional:false, // Optional
+        kushkiInfo: {
+            platformId: "KP010", // PRESTASHOP
+        }
     });
 </script>
 <script type="text/javascript">
