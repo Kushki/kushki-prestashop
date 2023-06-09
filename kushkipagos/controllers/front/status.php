@@ -12,9 +12,15 @@ class KushkipagosStatusModuleFrontController extends ModuleFrontController
         $logger->setFilename(_PS_ROOT_DIR_ . "/kushkiLogs/" . date('Y-m-d') . ".log");
 
         //headers
-        $app_key = $_SERVER['HTTP_X_KUSHKI_KEY'];// public key
+        if ($_SERVER['HTTP_CLIENT_IP'])
+        {
+            $app_key = $_SERVER['HTTP_X_KUSHKI_KEY'];// public key
+        }
+        if ($_SERVER ['HTTP_X_KUSHKI_SIMPLESIGNATURE'])
+        {
+            $webhook_simple_signature = $_SERVER ['HTTP_X_KUSHKI_SIMPLESIGNATURE'];
+        }
         $webhook_signature = $_SERVER ['HTTP_X_KUSHKI_SIGNATURE'];
-        $webhook_simple_signature = $_SERVER ['HTTP_X_KUSHKI_SIMPLESIGNATURE'];
         $kushki_id = $_SERVER ['HTTP_X_KUSHKI_ID'];
 
         //set variables

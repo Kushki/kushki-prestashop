@@ -116,7 +116,8 @@ class KushkipagosValidationModuleFrontController extends ModuleFrontController
         }
 
         $currency = $this->context->currency;
-        $total = (float)$cart->getOrderTotal(true, Cart::BOTH);
+        $totalCartAmount = (float)$cart->getOrderTotal(true, Cart::BOTH);
+        $total = round($totalCartAmount, 2);
 
         $module_name = $this->module->displayName;
 
