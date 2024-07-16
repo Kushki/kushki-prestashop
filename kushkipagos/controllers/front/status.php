@@ -12,16 +12,17 @@ class KushkipagosStatusModuleFrontController extends ModuleFrontController
         $logger->setFilename(_PS_ROOT_DIR_ . "/kushkiLogs/" . date('Y-m-d') . ".log");
 
         //headers
-        if ($_SERVER['HTTP_CLIENT_IP'])
+
+        if (filter_input(INPUT_SERVER, 'HTTP_CLIENT_IP') !== null)
         {
-            $app_key = $_SERVER['HTTP_X_KUSHKI_KEY'];// public key
+            $app_key = filter_input(INPUT_SERVER, 'HTTP_X_KUSHKI_KEY');// public key
         }
-        if ($_SERVER ['HTTP_X_KUSHKI_SIMPLESIGNATURE'])
+        if (filter_input(INPUT_SERVER, 'HTTP_X_KUSHKI_SIMPLESIGNATURE') !== null)
         {
-            $webhook_simple_signature = $_SERVER ['HTTP_X_KUSHKI_SIMPLESIGNATURE'];
+            $webhook_simple_signature =filter_input(INPUT_SERVER, 'HTTP_X_KUSHKI_SIMPLESIGNATURE');
         }
-        $webhook_signature = $_SERVER ['HTTP_X_KUSHKI_SIGNATURE'];
-        $kushki_id = $_SERVER ['HTTP_X_KUSHKI_ID'];
+        $webhook_signature = filter_input(INPUT_SERVER, 'HTTP_X_KUSHKI_SIGNATURE');
+        $kushki_id = filter_input(INPUT_SERVER, 'HTTP_X_KUSHKI_ID');
 
         //set variables
         $app_secret = Configuration::get('KUSHKIPAGOS_PRIVATE_KEY');
@@ -100,7 +101,8 @@ class KushkipagosStatusModuleFrontController extends ModuleFrontController
             $logger->logError('------- webhook run token: ' . $ps_token . ' error: '.$result['code'].' '. $result['message'] . ' -------');
             header("Status: 401 Not authenticated");
         }*/
-        die(Tools::jsonEncode($result));
+        $escaped_result = esc_html($result);
+        return(Tools::jsonEncode($escaped_result));
     }
 
     private function updateStatusOrder ($order_id,$OrderState): bool{
