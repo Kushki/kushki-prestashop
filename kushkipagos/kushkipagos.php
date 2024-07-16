@@ -32,7 +32,7 @@ use PrestaShop\PrestaShop\Core\Domain\Order\Exception\OrderException;
 use PrestaShop\PrestaShop\Core\Payment\PaymentOption;
 
 if (!defined('_PS_VERSION_')) {
-    exit;
+    return;
 }
 
 
@@ -50,7 +50,7 @@ class Kushkipagos extends PaymentModule
     {
         $this->name = 'kushkipagos';
         $this->tab = 'payments_gateways';
-        $this->version = '3.0.11';
+        $this->version = '3.0.12';
         $this->author = 'Kushkipagos';
         $this->need_instance = 0;
         $this->display = 'view';

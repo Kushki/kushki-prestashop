@@ -75,7 +75,7 @@ class KushkipagosValidationModuleFrontController extends ModuleFrontController
          */
         if ($this->module->active == false) {
             $logger->logError("Module kushki pagos is not active");
-            die;
+            return;
         }
 
         $cart = $this->context->cart;
@@ -101,7 +101,7 @@ class KushkipagosValidationModuleFrontController extends ModuleFrontController
             $err_msg=$this->trans('This payment method is not available.', array(), 'Modules.Checkpayment.Shop');
             $logger->logError($err_msg.' / This payment method is not available');
             Tools::redirect(Context::getContext()->link->getModuleLink('kushkipagos', 'error', array('error_msg' => $err_msg))); // plantilla de error para módulos nativos
-            die($this->trans('This payment method is not available.', array(), 'Modules.Checkpayment.Shop'));
+            return $this->trans('This payment method is not available.', array(), 'Modules.Checkpayment.Shop');
         }
 
         // Obtener datos cliente
@@ -432,7 +432,7 @@ class KushkipagosValidationModuleFrontController extends ModuleFrontController
             "email" => $customer_details->email,
             "name" => $customer_details->firstname,
             "totalAmount" =>round($amount['subtotalIva'] + $amount['subtotalIva0'] + $amount['iva'] + $amount['ice'], 2),
-            "ip" => $_SERVER['REMOTE_ADDR'],
+            "ip" => filter_input(INPUT_SERVER, 'REMOTE_ADDR', FILTER_SANITIZE_STRING),
             "orderId" => $_cart_id,
         );
 
@@ -478,7 +478,7 @@ class KushkipagosValidationModuleFrontController extends ModuleFrontController
             "channel" => "PRESTASHOP",
             "activationMethod" => $activationMethod,
             "paymentMethod" => $paymentMethod,
-            "storeDomain" => $protocol."://".$_SERVER['SERVER_NAME'].($baseUri ? $baseUri : '')
+            "storeDomain" => $protocol."://".filter_input(INPUT_SERVER, 'SERVER_NAME', FILTER_SANITIZE_STRING).($baseUri ? $baseUri : '')
         );
 
         if ($p_kushkiPaymentMethod == "card") {
@@ -644,7 +644,7 @@ class KushkipagosValidationModuleFrontController extends ModuleFrontController
         }
         // definimos el orderDetails
         $orderDetails = array(
-            "siteDomain" => $_SERVER['SERVER_NAME'],
+            "siteDomain" => filter_input(INPUT_SERVER, 'SERVER_NAME', FILTER_SANITIZE_STRING),
             "shippingDetails" => array(
                 "firstName" => $customer_details->firstname,
                 "lastName" => $customer_details->lastname,

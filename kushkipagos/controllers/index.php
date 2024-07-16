@@ -35,5 +35,5 @@ try {
     header('Location: ../');
  } catch (\Exception $ex) {
     //log already written in your pagseguro log file if pagseguro log is enabled in admin
-    exit;
+    return;
 }
